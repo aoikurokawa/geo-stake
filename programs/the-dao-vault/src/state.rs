@@ -61,6 +61,12 @@ pub struct Vault {
     _reserved: [u64; 14],
 }
 
+impl Vault {
+    pub fn flags(&self) -> VaultFlags {
+        
+    }
+}
+
 #[assert_size(aligns, 32)]
 #[repr(C, align(8))]
 #[derive(AnchorDeserialize, AnchorSerialize, Clone, Copy, Debug)]
