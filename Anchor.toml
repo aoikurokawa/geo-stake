@@ -1,14 +1,14 @@
 [features]
 seeds = false
 [programs.localnet]
-the_dao_vault = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
+the_dao_vault = "CYrQ5HhWsznvqX4dNMY8RuBxJhZQNjV6kZYynG22dqjQ"
 
 [registry]
 url = "https://anchor.projectserum.com"
 
 [provider]
 cluster = "localnet"
-wallet = "/Users/aoikurokawa/.config/solana/id.json"
+wallet = "~/.config/solana/id.json"
 
 [scripts]
 test = "yarn run ts-mocha tests/**/*.ts"

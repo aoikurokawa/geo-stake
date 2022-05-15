@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+declare_id!("CYrQ5HhWsznvqX4dNMY8RuBxJhZQNjV6kZYynG22dqjQ");
 
 #[program]
 pub mod the_dao_vault {
