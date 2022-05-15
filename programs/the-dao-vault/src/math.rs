@@ -56,3 +56,12 @@ pub fn calc_lp_to_reserve(
 /// 63072000
 pub const SLOTS_PER_YEAR: u64 =
     DEFAULT_TICKS_PER_SECOND / DEFAULT_TICKS_PER_SLOT * SECONDS_PER_DAY * 365;
+
+pub const ONE_AS_BPS: u64 = 10000;
+
+pub fn calc_carry_fees(profit: u64, fee_bps: u64) -> Result<u64, ProgramError> {
+    profit
+        .checked_mul(fee_bps)
+        .map(|n| n / ONE_AS_BPS)
+        .ok_or_else(|| ErrorCode::OverflowError.into())
+}
