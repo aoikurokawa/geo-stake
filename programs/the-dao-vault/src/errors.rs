@@ -50,3 +50,13 @@ pub enum ErrorCode {
     #[msg("Vault is halted")]
     HaltedVault,
 }
+
+// #[repr(transparent)]
+// #[derive(Debug)]
+// pub struct CmpError(pub anchor_lang::error::Error);
+
+// impl From<anchor_lang::error::Error> for CmpError {
+//     fn from(err: anchor_lang::error::Error) -> Self {
+//         CmpError(err)
+//     }
+// }
