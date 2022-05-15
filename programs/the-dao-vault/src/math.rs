@@ -59,9 +59,11 @@ pub const SLOTS_PER_YEAR: u64 =
 
 pub const ONE_AS_BPS: u64 = 10000;
 
-pub fn calc_carry_fees(profit: u64, fee_bps: u64) -> Result<u64, ProgramError> {
+pub fn calc_carry_fees(profit: u64, fee_bps: u64) -> Result<u64> {
     profit
         .checked_mul(fee_bps)
         .map(|n| n / ONE_AS_BPS)
-        .ok_or_else(|| ErrorCode::OverflowError.into())
+        .ok_or_else(|| return Err(ErrorCode::OverflowError.into()));
+
+    Ok(profit)
 }
