@@ -63,7 +63,8 @@ pub struct Vault {
 
 impl Vault {
     pub fn flags(&self) -> VaultFlags {
-        
+        VaultFlags::from_bits(self.bitflags)
+            .unwrap_or_else(|| panic!("{:?} does not resolve to build VaultFlags", self.bitflags))
     }
 }
 
@@ -94,6 +95,15 @@ pub enum RebalanceMode {
 pub enum StrategyType {
     MaxYield,
     EqualAllocation,
+}
+
+bitflags::bitflags! {
+    pub struct VaultFlags: u32 {
+        const HALT_RECONCILES = 1 << 0;
+        const HALT_REFRESHED = 1 << 1;
+        const HALT_DEPOSITS_WITHDRAWS = 1 << 2;
+        const HALT_ALL = Self::HALT_RECONCILES.bits | Self::HALT_REFRESHED.bits | Self::HALT_DEPOSITS_WITHDRAWS.bits;
+    }
 }
 
 #[assert_size(aligns, 72)]
