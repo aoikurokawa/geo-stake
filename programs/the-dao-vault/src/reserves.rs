@@ -2,6 +2,7 @@
 use mockall::*;
 
 use anchor_lang::prelude::*;
+use port_anchor_adaptor::PortReserve;
 use solana_maths::{Rate, TryMul};
 use strum_macros::{EnumCount, EnumIter};
 
@@ -84,4 +85,13 @@ where
 #[derive(Clone)]
 pub enum Reserves {
     Solend(SolendReserve),
+    Port(PortReserve),
+}
+
+impl<'a> ReserveAccessor for Reserves {
+    fn utilization_rate(&self) -> Result<Rate> {
+        match self {
+            Reserves::Solend(reserve) => reserve.utilization_rate()
+        }
+    }
 }
