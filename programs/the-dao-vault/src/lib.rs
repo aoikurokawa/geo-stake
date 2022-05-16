@@ -7,6 +7,9 @@ pub mod state;
 pub mod adapters;
 pub mod instructions;
 
+use adapters::*;
+use instructions::*;
+
 declare_id!("CYrQ5HhWsznvqX4dNMY8RuBxJhZQNjV6kZYynG22dqjQ");
 
 #[program]

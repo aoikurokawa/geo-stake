@@ -50,3 +50,10 @@ pub enum ErrorCode {
     #[msg("Vault is halted")]
     HaltedVault,
 }
+
+impl From<ProgramError> for Option<anchor_lang::error::Error> {
+    fn from(err: ProgramError) -> Self{
+        Some(Error(err))
+    }
+}
+

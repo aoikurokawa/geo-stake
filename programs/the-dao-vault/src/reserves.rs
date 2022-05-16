@@ -53,3 +53,30 @@ macro_rules! impl_provider_index {
         }
     };
 }
+
+#[cfg_attr(test, automock)]
+pub trait ReserveAccessor {
+    fn utilization_rate(&self) -> Result<Rate>;
+    fn borrow_rate(&self) -> Result<Rate>;
+
+    fn reserve_with_deposit(&self, allocation: u64) -> Result<Box<dyn ReserveAccessor>>;
+}
+
+#[cfg_attr(test, automock)]
+pub trait ReturnCalculator {
+    fn calculate_return(&self, allocation: u64) -> Result<Rate>;
+}
+
+impl<T> ReturnCalculator for T
+where
+    T: ReserveAccessor,
+{
+    fn calculate_return(&self, allocation: u64) -> Result<Rate> {
+        let reserve = self.reserve_with_deposit(allocation)?;
+        let res = reserve.utilization_rate()?.try_mul(reserve.borrow_rate()?);
+        match res {
+            Ok(val) => return Ok(val),
+            Err(err) => return Err(err.into()),
+        }
+    }
+}
