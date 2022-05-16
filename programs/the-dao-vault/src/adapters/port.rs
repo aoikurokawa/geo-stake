@@ -163,3 +163,40 @@ impl ReserveAccessor for Reserve {
         Ok(reserve)
     }
 }
+
+#[derive(Accounts)]
+pub struct RefreshPort<'info> {
+    /// Vault state account
+    /// Checks that the accounts passed in are correct
+    #[account(mut, has_one = vault_port_lp_token, has_one = port_reserve)]
+    pub vault: Box<Account<'info, Vault>>,
+
+    /// Token account for the vault's port lp tokens
+    pub vault_port_lp_token: Box<Account<'info, TokenAccount>>,
+
+    #[account(executable, address = port_lending_id())]
+    pub port_program: AccountInfo<'info>,
+
+    #[account(mut)]
+    pub port_reserve: Box<Account<'info, PortReserve>>,
+
+    pub clock: Sysvar<'info, Clock>,
+}
+
+impl<'info> Refresher<'info> for RefreshPort<'info> {
+    fn update_actual_allocation(&mut self, remaining_accounts: &[AccountInfo<'info>],) -> Result<()> {
+        port_anchor_adaptor::refresh_port_reserve(
+            self.port_refresh_reserve_context(remaining_accounts),
+        )?;
+
+        let port_exchange_rate = self.port_reserve.collateral_exchange_rate()?;
+        let port_value = port_exchange_rate.collateral_to_liquidity(self.vault_port_lp_token.amount)?;
+
+        #[cfg(feature = "debug")]
+        msg!("Refresh port reserve token value: {}", port_value);
+
+        self.vault.actual_allocations[Provider::Port].update(port_value, self.clock.slot);
+
+        Ok(())
+    }
+}
