@@ -65,6 +65,60 @@ pub fn handle<T: LendingMarket + HasVault>(ctx: Context<T>, withdraw_option: u64
                 .accounts
                 .convert_amount_lp_to_reserve(lp_tokens_in_vault)?;
             let allocation = ctx.accounts.vault().target_allocations[provider];
+            #[cfg(feature = "debug")]
+            {
+                msg!("Desired allocation: {}", allocation.val);
+                msg!("Current allocation: {}", current_value);
+            }
+
+            // Make sure that rebalance was called recently
+            let clock = Clock::get()?;
+            if allocation.last_update.slots_elapsed(clock.slot)? > MAX_SLOTS_SINCE_ALLOC_UPDATE {
+                return Err(ErrorCode::AllocationIsNotUpdated.into());
+            }
+
+            match allocation.value.checked_sub(current_value) {
+                Some(tokens_to_deposit) => {
+                    // Make sure that the amount deposited is not more than the vault has in reserves
+                    let tokens_to_deposit_checked =
+                        cmp::min(tokens_to_deposit, ctx.accounts.reserve_tokens_in_vault());
+
+                    #[cfg(feature = "debug")]
+                    msg!("Depositing {}", tokens_to_deposit_checked);
+
+                    ctx.accounts.deposit(tokens_to_deposit_checked)?;
+                }
+                None => {
+                    let tokens_to_redeem = ctx
+                        .accounts
+                        .lp_tokens_in_vault()
+                        .checked_sub(
+                            ctx.accounts
+                                .convert_amount_reserve_to_lp(allocation.value)?,
+                        )
+                        .ok_or(ErrorCode::MathError)?;
+                    #[cfg(feature = "debug")]
+                    msg!("Redeeming {}", tokens_to_redeem);
+
+                    ctx.accounts.redeem(tokens_to_redeem)?;
+                }
+            }
+
+            ctx.accounts.vault_mut().target_allocations[provider].reset();
+        }
+        // Extra case where reconcile is being called in same tx as withdraw of by vault owner to emergency brake
+        _ => {
+            // TODO check that tx is signed by owner OR there is a withdraw tx later with withdraw_option <= withdraw_amount
+            let tokens_to_redeem = ctx.accounts.convert_amount_reserve_to_lp(withdraw_option)?;
+
+            // Make sure that the amount to redeem is not more than the vault has
+            let tokens_to_redeem_checked =
+                cmp::min(tokens_to_redeem, ctx.accounts.lp_tokens_in_vault());
+
+            #[cfg(feature = "debug")]
+            msg!("Redeeming {}", tokens_to_redeem_checked);
+
+            ctx.accounts.redeem(tokens_to_redeem_checked)?;
         }
     }
 
