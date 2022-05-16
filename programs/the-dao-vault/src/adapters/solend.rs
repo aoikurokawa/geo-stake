@@ -61,6 +61,30 @@ impl<'info> LendingMarket for SolendAccounts<'info> {
 
         Ok(())
     }
+
+    fn redeem(&self, amount: u64) -> Result<()> {
+        Ok(())
+    }
+
+    fn convert_amount_reserve_to_lp(&self, amount: u64) -> Result<u64> {
+        Ok(0)
+    }
+
+    fn convert_amount_lp_to_reserve(&self, amount: u64) -> Result<u64> {
+        Ok(0)
+    }
+
+    fn reserve_tokens_in_vault(&self) -> u64 {
+        0
+    }
+
+    fn lp_tokens_in_vault(&self) -> u64 {
+        0
+    }
+
+    fn provider(&self) -> Provider {
+        Provider::Solend
+    }
 }
 
 #[derive(Clone)]
