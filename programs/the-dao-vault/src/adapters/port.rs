@@ -143,3 +143,23 @@ impl<'info> LendingMarket for PortAccounts<'info> {
         Provider::Port
     }
 }
+
+impl ReserveAccessor for Reserve {
+    fn utilization_rate(&self) -> Result<Rate> {
+        Ok(Rate::from_scaled_val(
+            self.liquidity.utilization_rate()?.to_scaled_val() as u64,
+        ))
+    }
+
+    fn borrow_rate(&self) -> Result<Rate> {
+        Ok(Rate::from_scaled_val(
+            self.current_borrow_rate()?.to_scaled_val() as u64,
+        ))
+    }
+
+    fn reserve_with_deposit(&self, allocation: u64) -> Result<Box<dyn ReserveAccessor>> {
+        let mut reserve = Box::new(self.clone());
+        reserve.liquidity.available_amount = reserve.liquidity.available_amount.checked_add(allocation).ok_or(ErrorCode::OverflowError)?;
+        Ok(reserve)
+    }
+}
