@@ -9,13 +9,17 @@ use crate::adapters::{solend, SolendReserve};
 use crate::errors::ErrorCode;
 
 pub trait Refresher<'info> {
-    fn update_actual_allocation(&mut self, remaining_accounts: &[AccountInfo]<'info>) -> Result<()>
+    fn update_actual_allocation(
+        &mut self, 
+        remaining_accounts: &[AccountInfo]<'info>
+    ) -> Result<()>
 }
 
 /// Refreshes the reserves of downstream lending markets
-pub fn handler<'info, T: Refresher<'info>>(ctx: Context<'_, '_, '_, 'info, T>) -> Result<()>{
+pub fn handler<'info, T: Refresher<'info>>(ctx: Context<'_, '_, '_, 'info, T>) -> Result<()> {
     #[cfg(feature = "debug")]
     msg!("Refreshing lending pool");
 
-    ctx.accounts.update_actual_allocation(ctx.remaining_accounts)
+    ctx.accounts
+        .update_actual_allocation(ctx.remaining_accounts)
 }
