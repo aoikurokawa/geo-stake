@@ -57,9 +57,30 @@ impl_has_vault!(SolendAccounts<'_>);
 
 impl<'info> LendingMarket for SolendAccounts<'info> {
     fn deposit(&self, amount: u64) -> Result<()> {
-        let context = CpiContext::new(self.solend_program.clone(), DepositReserveLiquidity {});
+        let context = CpiContext::new(
+            self.solend_program.clone(),
+            DepositReserveLiquidity {
+                lending_program: self.solend_program.clone(),
+                source_liquidity: self.vault_reserve_token.to_account_info(),
+                destination_collateral_account: self.vault_solend_lp_token.to_account_info(),
+                reserve: self.solend_reserve.to_account_info(),
+                reserve_collateral_mint: self.solend_lp_mint.clone(),
+                reserve_liquidity_supply: self.solend_reserve_token.clone(),
+                lending_market: self.solend_market.clone(),
+                lending_market_authority: self.solend_market_authority.clone(),
+                transfer_authority: self.vault_authority.clone(),
+                clock: self.clock.to_account_info(),
+                token_program_id: self.token_program.to_account_info(),
+            },
+        );
 
-        Ok(())
+        match amount {
+            0 => Ok(()),
+            _ => deposit_reserve_liquidity(
+                context.with_signer(&[&self.vault.authority_seeds()]),
+                amount,
+            ),
+        }
     }
 
     fn redeem(&self, amount: u64) -> Result<()> {
@@ -85,6 +106,31 @@ impl<'info> LendingMarket for SolendAccounts<'info> {
     fn provider(&self) -> Provider {
         Provider::Solend
     }
+}
+
+pub fn deposit_reserve_liquidity<'info>(
+    ctx: CpiContext<'_, '_, '_, 'info, DepositReserveLiquidity<'info>>,
+    liquidity_amount: u64,
+) -> Result<()> {
+    let ix = spl_token_lending::instruction::deposit_reserve_liquidity(
+        *ctx.accounts.lending_program.key,
+        liquidity_amount,
+        *ctx.accounts.source_liquidity.key,
+        *ctx.accounts.destination_collateral_account.key,
+        *ctx.accounts.reserve.key,
+        *ctx.accounts.reserve_liquidity_supply.key,
+        *ctx.accounts.reserve_collateral_mint.key,
+        *ctx.accounts.lending_market.key,
+        *ctx.accounts.transfer_authority.key,
+    );
+
+    solana_program::program::invoke_signed(
+        &ix,
+        &ToAccountInfos::to_account_infos(&ctx),
+        ctx.signer_seeds,
+    )?;
+
+    Ok(())
 }
 
 #[derive(Clone)]

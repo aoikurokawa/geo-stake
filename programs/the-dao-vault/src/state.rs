@@ -7,7 +7,11 @@ use type_layout::TypeLayout;
 
 use jet_proto_proc_macros::assert_size;
 
-use crate::{errors::ErrorCode, impl_provider_index};
+use crate::{
+    errors::ErrorCode,
+    impl_provider_index,
+    math::{calc_carry_fees, calc_mgmt_fees},
+};
 
 // use crate::
 #[assert_size(768)]
@@ -79,7 +83,33 @@ impl Vault {
         let vault_value_diff = new_vault_value.saturating_sub(self.value.value);
         let slots_elapsed = self.value.last_update.slots_elapsed(slot)?;
 
-        Ok(0)
+        let carry = calc_carry_fees(vault_value_diff, self.config.fee_carry_bps as u64)?;
+        let mgmt = calc_mgmt_fees(
+            new_vault_value,
+            self.config.fee_mgmt_bps as u64,
+            slots_elapsed,
+        )?;
+
+        #[cfg(feature = "debug")]
+        {
+            msg!("Slots elapsed: {}", slots_elapsed);
+            msg!("New vault value: {}", new_vault_value);
+            msg!("Old vault value: {}", self.value.value);
+            msg!("Carry fee: {}", carry);
+            msg!("Mgmt fee: {}", mgmt);
+        }
+
+        carry
+            .checked_add(mgmt)
+            .ok_or_else(|| ErrorCode::OverflowError.into())
+    }
+
+    pub fn authority_seeds(&self) -> [&[u8]; 3] {
+        [
+            self.authority_seed.as_ref(),
+            b"authority".as_ref(),
+            &self.authority_bump,
+        ]
     }
 }
 
