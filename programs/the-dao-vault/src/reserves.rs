@@ -91,7 +91,8 @@ pub enum Reserves {
 impl<'a> ReserveAccessor for Reserves {
     fn utilization_rate(&self) -> Result<Rate> {
         match self {
-            Reserves::Solend(reserve) => reserve.utilization_rate()
+            Reserves::Solend(reserve) => reserve.utilization_rate(),
+            Reserves::Port(reserve) => reserve.utilization_rate()
         }
     }
 }
