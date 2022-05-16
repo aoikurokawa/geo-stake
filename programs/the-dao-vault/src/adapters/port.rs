@@ -10,6 +10,7 @@ use crate::{
     errors::ErrorCode,
     impl_has_vault,
     reconcile::LendingMarket,
+    refresh::Refresher,
     reserves::{Provider, ReserveAccessor},
     state::Vault,
 };
@@ -27,7 +28,7 @@ pub struct PortAccounts<'info> {
     )]
     pub vault: Box<Account<'info, Vault>>,
 
-    /// Authority that the vault uses for lp token mint/burns and transfers to/from downstream assets
+    /// Authority that the vault uses for lp token mints/burns and transfers to/from downstream assets
     pub vault_authority: AccountInfo<'info>,
 
     /// Token account for the vault's reserve tokens
@@ -39,7 +40,7 @@ pub struct PortAccounts<'info> {
     pub vault_port_lp_token: Box<Account<'info, TokenAccount>>,
 
     #[account(
-        executable, 
+        executable,
         address = port_lending_id(),
     )]
     pub port_program: AccountInfo<'info>,
@@ -59,7 +60,7 @@ pub struct PortAccounts<'info> {
 
     pub clock: Sysvar<'info, Clock>,
 
-    pub token_program: Program<'info, Token>
+    pub token_program: Program<'info, Token>,
 }
 
 impl_has_vault!(PortAccounts<'_>);
@@ -67,7 +68,7 @@ impl_has_vault!(PortAccounts<'_>);
 impl<'info> LendingMarket for PortAccounts<'info> {
     fn deposit(&self, amount: u64) -> Result<()> {
         let context = CpiContext::new(
-            self.port_program.clone(), 
+            self.port_program.clone(),
             port_anchor_adaptor::Deposit {
                 source_liquidity: self.vault_reserve_token.to_account_info(),
                 destination_collateral: self.vault_port_lp_token.to_account_info(),
@@ -79,20 +80,21 @@ impl<'info> LendingMarket for PortAccounts<'info> {
                 transfer_authority: self.vault_authority.clone(),
                 clock: self.clock.to_account_info(),
                 token_program: self.token_program.to_account_info(),
-            }
+            },
         );
 
         match amount {
             0 => Ok(()),
             _ => port_anchor_adaptor::deposit_reserve(
-                context.with_signer(&[&self.vault.authority_seeds()]), 
-                amount)
+                context.with_signer(&[&self.vault.authority_seeds()]),
+                amount,
+            ),
         }
     }
 
     fn redeem(&self, amount: u64) -> Result<()> {
         let context = CpiContext::new(
-            self.port_program.clone(), 
+            self.port_program.clone(),
             port_anchor_adaptor::Redeem {
                 source_collateral: self.vault_port_lp_token.to_account_info(),
                 destination_liquidity: self.vault_reserve_token.to_account_info(),
@@ -104,13 +106,13 @@ impl<'info> LendingMarket for PortAccounts<'info> {
                 transfer_authority: self.vault_authority.clone(),
                 clock: self.clock.to_account_info(),
                 token_program: self.token_program.to_account_info(),
-            }
+            },
         );
         match amount {
             0 => Ok(()),
             _ => port_anchor_adaptor::redeem(
-                context.with_signer(&[&self.vault.authority_seeds()]), 
-                amount
+                context.with_signer(&[&self.vault.authority_seeds()]),
+                amount,
             ),
         }
     }
@@ -119,7 +121,7 @@ impl<'info> LendingMarket for PortAccounts<'info> {
         let exchange_rate = self.port_reserve.collateral_exchange_rate()?;
         match exchange_rate.liquidity_to_collateral(amount) {
             Ok(val) => Ok(val),
-            Err(err) => Err(err.into())
+            Err(err) => Err(err.into()),
         }
     }
 
@@ -127,7 +129,7 @@ impl<'info> LendingMarket for PortAccounts<'info> {
         let exchange_rate = self.port_reserve.collateral_exchange_rate()?;
         match exchange_rate.collateral_to_liquidity(amount) {
             Ok(val) => Ok(val),
-            Err(err) => Err(err.into())
+            Err(err) => Err(err.into()),
         }
     }
 
@@ -159,7 +161,11 @@ impl ReserveAccessor for Reserve {
 
     fn reserve_with_deposit(&self, allocation: u64) -> Result<Box<dyn ReserveAccessor>> {
         let mut reserve = Box::new(self.clone());
-        reserve.liquidity.available_amount = reserve.liquidity.available_amount.checked_add(allocation).ok_or(ErrorCode::OverflowError)?;
+        reserve.liquidity.available_amount = reserve
+            .liquidity
+            .available_amount
+            .checked_add(allocation)
+            .ok_or(ErrorCode::OverflowError)?;
         Ok(reserve)
     }
 }
@@ -183,14 +189,34 @@ pub struct RefreshPort<'info> {
     pub clock: Sysvar<'info, Clock>,
 }
 
+impl<'info> RefreshPort<'info> {
+    fn port_refresh_reserve_context(
+        &self,
+        remaining_accounts: &[AccountInfo<'info>],
+    ) -> CpiContext<'_, '_, '_, 'info, port_anchor_adaptor::RefreshReserve<'info>> {
+        CpiContext::new(
+            self.port_program.clone(),
+            port_anchor_adaptor::RefreshReserve {
+                reserve: self.port_reserve.to_account_info(),
+                clock: self.clock.to_account_info(),
+            },
+        )
+        .with_remaining_accounts(remaining_accounts.to_vec())
+    }
+}
+
 impl<'info> Refresher<'info> for RefreshPort<'info> {
-    fn update_actual_allocation(&mut self, remaining_accounts: &[AccountInfo<'info>],) -> Result<()> {
+    fn update_actual_allocation(
+        &mut self,
+        remaining_accounts: &[AccountInfo<'info>],
+    ) -> Result<()> {
         port_anchor_adaptor::refresh_port_reserve(
             self.port_refresh_reserve_context(remaining_accounts),
         )?;
 
         let port_exchange_rate = self.port_reserve.collateral_exchange_rate()?;
-        let port_value = port_exchange_rate.collateral_to_liquidity(self.vault_port_lp_token.amount)?;
+        let port_value =
+            port_exchange_rate.collateral_to_liquidity(self.vault_port_lp_token.amount)?;
 
         #[cfg(feature = "debug")]
         msg!("Refresh port reserve token value: {}", port_value);
