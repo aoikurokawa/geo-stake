@@ -74,6 +74,13 @@ impl Vault {
         self.bitflags = bits;
         Ok(())
     }
+
+    pub fn calculate_fees(&self, new_vault_value: u64, slot: u64) -> Result<u64> {
+        let vault_value_diff = new_vault_value.saturating_sub(self.value.value);
+        let slots_elapsed = self.value.last_update.slots_elapsed(slot)?;
+
+        Ok(0)
+    }
 }
 
 #[assert_size(aligns, 32)]
@@ -130,6 +137,9 @@ pub struct SlotTrackecValue {
     pub last_update: LastUpdate,
 }
 
+// Number of slots to consider stale after
+pub const STALE_AFTER_SLOTS_ELAPSED: u64 = 2;
+
 #[assert_size(aligns, 16)]
 #[repr(C, align(8))]
 #[derive(AnchorDeserialize, AnchorSerialize, Clone, Copy, Debug, Default)]
@@ -137,4 +147,55 @@ pub struct LastUpdate {
     pub slot: u64,
     pub stale: bool,
     _padding: [u8; 7],
+}
+
+impl LastUpdate {
+    /// Create new last update
+    pub fn new(slot: u64) -> Self {
+        Self {
+            slot,
+            stale: true,
+            _padding: [0_u8; 7],
+        }
+    }
+
+    /// Return slots elapsed since given slot
+    pub fn slots_elapsed(&self, slot: u64) -> Result<u64> {
+        slot.checked_sub(self.slot)
+            .ok_or_else(|| ErrorCode::MathError.into())
+    }
+
+    /// Set last update slot
+    pub fn update_slot(&mut self, slot: u64) {
+        self.slot = slot;
+        self.stale = false;
+    }
+
+    /// Set stale to true
+    pub fn mark_stale(&mut self) {
+        self.stale = true;
+    }
+
+    /// Check if marked stale or last update slot is too long ago
+    pub fn is_stale(&self, slot: u64) -> Result<bool> {
+        #[cfg(feature = "debug")]
+        {
+            msg!("Last updated slot: {}", self.slot);
+            msg!("Current slot: {}", slot);
+        }
+
+        Ok(self.stale || self.slots_elapsed(slot)? >= STALE_AFTER_SLOTS_ELAPSED)
+    }
+}
+
+impl PartialEq for LastUpdate {
+    fn eq(&self, other: &Self) -> bool {
+        self.slot == other.slot
+    }
+}
+
+impl PartialOrd for LastUpdate {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        self.slot.partial_cmp(&other.slot)
+    }
 }
