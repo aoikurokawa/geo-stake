@@ -57,10 +57,7 @@ impl_has_vault!(SolendAccounts<'_>);
 
 impl<'info> LendingMarket for SolendAccounts<'info> {
     fn deposit(&self, amount: u64) -> Result<()> {
-        let context = CpiContext::new(self.solend_program.clone(), DepositReserveLiquidity {
-
-        });
-
+        let context = CpiContext::new(self.solend_program.clone(), DepositReserveLiquidity {});
 
         Ok(())
     }
@@ -127,5 +124,41 @@ pub struct DepositReserveLiquidity<'info> {
     pub clock: AccountInfo<'info>,
 
     // Token program ID
-    pub token_program_id: AccountInfo<'info>
+    pub token_program_id: AccountInfo<'info>,
+}
+
+#[derive(Accounts)]
+pub struct RedeemReserveCollateral<'info> {
+    // Lending program
+    pub lending_program: AccountInfo<'info>,
+
+    // Source token account for reserve collateral token
+    pub source_collateral: AccountInfo<'info>,
+
+    // Destination liquidity token account
+    pub destination_liquidity: AccountInfo<'info>,
+
+    // Refreshed reserve account
+    pub reserve: AccountInfo<'info>,
+
+    // Reserve collateral mint account
+    pub reserve_collateral_mint: AccountInfo<'info>,
+
+    // Reserve liquidity supply SPL Token account.
+    pub reserve_liquidity_supply: AccountInfo<'info>,
+
+    // Lending market
+    pub lending_market: AccountInfo<'info>,
+
+    // Lending market account - PDA
+    pub lending_market_authority: AccountInfo<'info>,
+
+    // User transfer authority
+    pub transfer_authority: AccountInfo<'info>,
+
+    // Clock
+    pub clock: AccountInfo<'info>,
+
+    // Token program ID
+    pub token_program_id: AccountInfo<'info>,
 }
