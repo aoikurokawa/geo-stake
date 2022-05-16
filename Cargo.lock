@@ -1016,6 +1016,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "port-anchor-adaptor"
+version = "0.3.4"
+source = "git+https://github.com/Aoi1011/port-anchor-adaptor.git#818b7f988c9ff9c563d4bf698baca6c5762e5f8b"
+dependencies = [
+ "anchor-lang",
+ "num-derive",
+ "num-traits",
+ "port-staking-instructions 0.2.0",
+ "port-variable-rate-lending-instructions 0.2.9",
+ "solana-maths",
+ "thiserror",
+]
+
+[[package]]
 name = "port-staking-instructions"
 version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1032,6 +1046,40 @@ dependencies = [
 ]
 
 [[package]]
+name = "port-staking-instructions"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "58a0376f07714b1c0813b6140c8ee39eaa39a0482545b4c7dc4d894f74a9c7a9"
+dependencies = [
+ "arrayref",
+ "bytemuck",
+ "num-derive",
+ "num-traits",
+ "solana-maths",
+ "solana-program",
+ "spl-token",
+ "thiserror",
+ "uint 0.8.5",
+]
+
+[[package]]
+name = "port-variable-rate-lending-instructions"
+version = "0.2.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "53c9abfa3842f2b9147d2f2930b819eac0850671521904d1fd8ac0e5bedf5b46"
+dependencies = [
+ "arrayref",
+ "bytemuck",
+ "num-derive",
+ "num-traits",
+ "port-staking-instructions 0.1.7",
+ "solana-program",
+ "spl-token",
+ "thiserror",
+ "uint 0.8.5",
+]
+
+[[package]]
 name = "port-variable-rate-lending-instructions"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1041,7 +1089,7 @@ dependencies = [
  "bytemuck",
  "num-derive",
  "num-traits",
- "port-staking-instructions",
+ "port-staking-instructions 0.1.7",
  "solana-maths",
  "solana-program",
  "spl-token",
@@ -1555,7 +1603,8 @@ dependencies = [
  "jet-proto-math",
  "jet-proto-proc-macros",
  "mockall",
- "port-variable-rate-lending-instructions",
+ "port-anchor-adaptor",
+ "port-variable-rate-lending-instructions 0.3.0",
  "solana-maths",
  "solana-security-txt",
  "spl-math",
