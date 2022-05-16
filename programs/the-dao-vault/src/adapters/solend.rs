@@ -84,7 +84,30 @@ impl<'info> LendingMarket for SolendAccounts<'info> {
     }
 
     fn redeem(&self, amount: u64) -> Result<()> {
-        Ok(())
+        let context = CpiContext::new(
+            self.solend_program.clone(),
+            RedeemReserveCollateral {
+                lending_program: self.solend_program.clone(),
+                source_collateral: self.vault_solend_lp_token.to_account_info(),
+                destination_liquidity: self.vault_reserve_token.to_account_info(),
+                reserve: self.solend_reserve.to_account_info(),
+                reserve_collateral_mint: self.solend_lp_mint.clone(),
+                reserve_liquidity_supply: self.solend_reserve_token.clone(),
+                lending_market: self.solend_market.clone(),
+                lending_market_authority: self.solend_market_authority.clone(),
+                transfer_authority: self.vault_authority.clone(),
+                clock: self.clock.to_account_info(),
+                token_program_id: self.token_program.to_account_info(),
+            },
+        );
+
+        match amount {
+            0 => Ok(()),
+            _ => redeem_reserve_collateral(
+                context.with_signer(&[&self.vault.authority_seeds()]),
+                amount,
+            ),
+        }
     }
 
     fn convert_amount_reserve_to_lp(&self, amount: u64) -> Result<u64> {
@@ -120,6 +143,31 @@ pub fn deposit_reserve_liquidity<'info>(
         *ctx.accounts.reserve.key,
         *ctx.accounts.reserve_liquidity_supply.key,
         *ctx.accounts.reserve_collateral_mint.key,
+        *ctx.accounts.lending_market.key,
+        *ctx.accounts.transfer_authority.key,
+    );
+
+    solana_program::program::invoke_signed(
+        &ix,
+        &ToAccountInfos::to_account_infos(&ctx),
+        ctx.signer_seeds,
+    )?;
+
+    Ok(())
+}
+
+pub fn redeem_reserve_collateral<'info>(
+    ctx: CpiContext<'_, '_, '_, 'info, RedeemReserveCollateral<'info>>,
+    collateral_amount: u64,
+) -> Result<()> {
+    let ix = spl_token_lending::instruction::redeem_reserve_collateral(
+        *ctx.accounts.lending_program.key,
+        collateral_amount,
+        *ctx.accounts.source_collateral.key,
+        *ctx.accounts.destination_liquidity.key,
+        *ctx.accounts.reserve.key,
+        *ctx.accounts.reserve_collateral_mint.key,
+        *ctx.accounts.reserve_liquidity_supply.key,
         *ctx.accounts.lending_market.key,
         *ctx.accounts.transfer_authority.key,
     );
