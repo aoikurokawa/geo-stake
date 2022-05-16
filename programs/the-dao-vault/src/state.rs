@@ -1,11 +1,13 @@
+use anchor_lang::prelude::*;
 use std::cmp::Ordering;
 
 use strum::IntoEnumIterator;
 #[cfg(test)]
 use type_layout::TypeLayout;
 
-use anchor_lang::prelude::*;
 use jet_proto_proc_macros::assert_size;
+
+use crate::errors::ErrorCode;
 
 // use crate::
 #[assert_size(768)]
@@ -65,6 +67,12 @@ impl Vault {
     pub fn flags(&self) -> VaultFlags {
         VaultFlags::from_bits(self.bitflags)
             .unwrap_or_else(|| panic!("{:?} does not resolve to build VaultFlags", self.bitflags))
+    }
+
+    pub fn set_flags(&mut self, bits: u32) -> Result<()> {
+        VaultFlags::from_bits(bits).ok_or_else(|| return ErrorCode::InvalidVaultFlags)?;
+        self.bitflags = bits;
+        Ok(())
     }
 }
 
