@@ -139,6 +139,18 @@ pub struct SlotTrackecValue {
     pub last_update: LastUpdate,
 }
 
+impl SlotTrackecValue {
+    pub fn update(&mut self, value: u64, slot: u64) {
+        self.value = value;
+        self.last_update.update_slot(slot);
+    }
+
+    pub fn reset(&mut self) {
+        self.value = 0;
+        self.last_update.mark_stale()
+    }
+}
+
 // Number of slots to consider stale after
 pub const STALE_AFTER_SLOTS_ELAPSED: u64 = 2;
 
