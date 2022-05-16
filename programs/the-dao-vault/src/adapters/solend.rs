@@ -55,6 +55,17 @@ pub struct SolendAccounts<'info> {
 
 impl_has_vault!(SolendAccounts<'_>);
 
+impl<'info> LendingMarket for SolendAccounts<'info> {
+    fn deposit(&self, amount: u64) -> Result<()> {
+        let context = CpiContext::new(self.solend_program.clone(), DepositReserveLiquidity {
+
+        });
+
+
+        Ok(())
+    }
+}
+
 #[derive(Clone)]
 pub struct SolendReserve(Reserve);
 
@@ -81,4 +92,40 @@ impl anchor_lang::Owner for SolendReserve {
     fn owner() -> Pubkey {
         spl_token_lending::id()
     }
+}
+
+#[derive(Accounts)]
+pub struct DepositReserveLiquidity<'info> {
+    // Lending program
+    pub lending_program: AccountInfo<'info>,
+
+    // Token account for asset to deposit into reserve
+    pub source_liquidity: AccountInfo<'info>,
+
+    // Token account for reserve collateral token
+    pub destination_collateral_account: AccountInfo<'info>,
+
+    // Reserve state account
+    pub reserve: AccountInfo<'info>,
+
+    // Token mint for reserve collateral token
+    pub reserve_collateral_mint: AccountInfo<'info>,
+
+    // Reserve liquidity supply SPL token account
+    pub reserve_liquidity_supply: AccountInfo<'info>,
+
+    // Lending market
+    pub lending_market: AccountInfo<'info>,
+
+    // Lending market Authority (PDA)
+    pub lending_market_authority: AccountInfo<'info>,
+
+    // Transfer auhtority for accounts 1 and 2
+    pub transfer_authority: AccountInfo<'info>,
+
+    // Clock
+    pub clock: AccountInfo<'info>,
+
+    // Token program ID
+    pub token_program_id: AccountInfo<'info>
 }

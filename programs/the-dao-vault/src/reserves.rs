@@ -80,3 +80,8 @@ where
         }
     }
 }
+
+#[derive(Clone)]
+pub enum Reserves {
+    Solend(SolendReserve),
+}
