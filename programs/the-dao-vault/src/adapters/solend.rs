@@ -91,6 +91,14 @@ impl anchor_lang::Owner for SolendReserve {
     }
 }
 
+impl Deref for SolendReserve {
+    type Target = Reserve;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
 #[derive(Accounts)]
 pub struct DepositReserveLiquidity<'info> {
     // Lending program
