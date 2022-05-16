@@ -706,6 +706,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "hex"
+version = "0.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
+
+[[package]]
 name = "hmac"
 version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -765,7 +771,7 @@ dependencies = [
  "bytemuck",
  "static_assertions",
  "thiserror",
- "uint",
+ "uint 0.8.5",
 ]
 
 [[package]]
@@ -1022,7 +1028,7 @@ dependencies = [
  "solana-program",
  "spl-token",
  "thiserror",
- "uint",
+ "uint 0.8.5",
 ]
 
 [[package]]
@@ -1040,7 +1046,7 @@ dependencies = [
  "solana-program",
  "spl-token",
  "thiserror",
- "uint",
+ "uint 0.8.5",
 ]
 
 [[package]]
@@ -1360,7 +1366,7 @@ dependencies = [
  "num-traits",
  "solana-program",
  "thiserror",
- "uint",
+ "uint 0.8.5",
 ]
 
 [[package]]
@@ -1448,7 +1454,7 @@ dependencies = [
  "num-traits",
  "solana-program",
  "thiserror",
- "uint",
+ "uint 0.8.5",
 ]
 
 [[package]]
@@ -1463,6 +1469,21 @@ dependencies = [
  "num_enum",
  "solana-program",
  "thiserror",
+]
+
+[[package]]
+name = "spl-token-lending"
+version = "0.1.2"
+source = "git+https://github.com/Aoi1011/solana-program-library#9704ba1838643ecc8a438419aa43e7effcff3b08"
+dependencies = [
+ "arrayref",
+ "bytemuck",
+ "num-derive",
+ "num-traits",
+ "solana-program",
+ "spl-token",
+ "thiserror",
+ "uint 0.9.3",
 ]
 
 [[package]]
@@ -1538,6 +1559,7 @@ dependencies = [
  "solana-maths",
  "solana-security-txt",
  "spl-math",
+ "spl-token-lending",
  "static_assertions",
  "strum",
  "strum_macros",
@@ -1609,6 +1631,18 @@ dependencies = [
  "byteorder",
  "crunchy",
  "rustc-hex",
+ "static_assertions",
+]
+
+[[package]]
+name = "uint"
+version = "0.9.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "12f03af7ccf01dd611cc450a0d10dbc9b745770d096473e2faf0ca6e2d66d1e0"
+dependencies = [
+ "byteorder",
+ "crunchy",
+ "hex",
  "static_assertions",
 ]
 
