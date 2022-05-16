@@ -56,7 +56,17 @@ pub fn handle<T: LendingMarket + HasVault>(ctx: Context<T>, withdraw_option: u64
         .contains(VaultFlags::HALT_RECONCILES))
     .ok_or::<Error>(ErrorCode::HaltedVault.into())?;
 
-    
+    let provider = ctx.accounts.provider();
+    match withdraw_option {
+        // Normal case where reconcile is being called after rebalance
+        0 => {
+            let lp_tokens_in_vault = ctx.accounts.lp_tokens_in_vault();
+            let current_value = ctx
+                .accounts
+                .convert_amount_lp_to_reserve(lp_tokens_in_vault)?;
+            let allocation = ctx.accounts.vault().target_allocations[provider];
+        }
+    }
 
     Ok(())
 }

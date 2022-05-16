@@ -7,7 +7,7 @@ use type_layout::TypeLayout;
 
 use jet_proto_proc_macros::assert_size;
 
-use crate::errors::ErrorCode;
+use crate::{errors::ErrorCode, impl_provider_index};
 
 // use crate::
 #[assert_size(768)]
@@ -129,6 +129,8 @@ pub struct Allocations {
     pub port: SlotTrackecValue,
     pub jet: SlotTrackecValue,
 }
+
+impl_provider_index!(Allocations, SlotTrackecValue);
 
 #[repr(C, align(8))]
 #[derive(AnchorDeserialize, AnchorSerialize, Clone, Copy, Debug, Default)]
