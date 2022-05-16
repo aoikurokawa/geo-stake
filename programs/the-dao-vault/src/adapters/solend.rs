@@ -162,3 +162,23 @@ pub struct RedeemReserveCollateral<'info> {
     // Token program ID
     pub token_program_id: AccountInfo<'info>,
 }
+
+#[derive(Accounts)]
+pub struct RefreshReserve<'info> {
+    // Lending program
+    pub lending_program: AccountInfo<'info>,
+
+    // Reserve account
+    pub reserve: AccountInfo<'info>,
+
+    // Pyth reserve liquidity oracle
+    // Must be the pyth price account specified in InitReserve
+    pub pyth_reserve_liquidity_oracle: AccountInfo<'info>,
+
+    // Switchboard Reserve liquidity oracle account
+    // Must be the switchboard price account specified in InitReserve
+    pub switchboard_reserve_liquidity_oracle: AccountInfo<'info>,
+
+    // Clock
+    pub clock: AccountInfo<'info>,
+}
