@@ -111,19 +111,27 @@ impl<'info> LendingMarket for SolendAccounts<'info> {
     }
 
     fn convert_amount_reserve_to_lp(&self, amount: u64) -> Result<u64> {
-        Ok(0)
+        let exchange_rate = self.solend_reserve.collateral_exchange_rate()?;
+        match exchange_rate.liquidity_to_collateral(amount) {
+            Ok(val) => Ok(val),
+            Err(err) => Err(err.into()),
+        }
     }
 
     fn convert_amount_lp_to_reserve(&self, amount: u64) -> Result<u64> {
-        Ok(0)
+        let exchange_rate = self.solend_reserve.collateral_exchange_rate()?;
+        match exchange_rate.collateral_to_liquidity(amount) {
+            Ok(val) => Ok(val),
+            Err(err) => Err(err.into()),
+        }
     }
 
     fn reserve_tokens_in_vault(&self) -> u64 {
-        0
+        self.vault_reserve_token.amount
     }
 
     fn lp_tokens_in_vault(&self) -> u64 {
-        0
+        self.vault_solend_lp_token.amount
     }
 
     fn provider(&self) -> Provider {
