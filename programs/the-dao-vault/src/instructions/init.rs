@@ -215,11 +215,11 @@ fn get_version_arr() -> [u8; 3] {
         env!("CARGO_PKG_VERSION_MAJOR")
             .parse::<u8>()
             .expect("failed to parse major version"),
-        env!("CARGO_PKG_VERSION_MAJOR")
+        env!("CARGO_PKG_VERSION_MINOR")
             .parse::<u8>()
-            .expect("failed to parse major version"),
-        env!("CARGO_PKG_VERSION_MAJOR")
+            .expect("failed to parse minor version"),
+        env!("CARGO_PKG_VERSION_PATCH")
             .parse::<u8>()
-            .expect("failed to parse major version"),
+            .expect("failed to parse patch version"),
     ]
 }
