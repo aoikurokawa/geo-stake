@@ -131,4 +131,36 @@ pub struct Initialize<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
+impl<'info> Initialize<'info> {
+    fn init_fee_receiver_create_context(
+        &self,
+        fee_token_account: AccountInfo<'info>,
+        token_authority: AccountInfo<'info>,
+    ) -> CpiContext<'_, '_, '_, 'info, Create<'info>> {
+        CpiContext::new(
+            self.token_program.to_account_info(),
+            Create {
+                payer: self.payer.to_account_info(),
+                associated_token: fee_token_account,
+                authority: token_authority,
+                mint: self.lp_token_mint.to_account_info(),
+                system_program: self.system_program.to_account_info(),
+                rent: self.rent.to_account_info(),
+                token_program: self.token_program.to_account_info(),
+            },
+        )
+    }
 
+    fn validate_referral_token(&self) -> Result<()> {
+        let referral_fee_receiver = associated_token::get_associated_token_address(
+            &self.referral_fee_owner.key(),
+            &self.lp_token_mint.key(),
+        );
+
+        if referral_fee_receiver.ne(&self.referral_fee_receiver.key()) {
+            return Err(ProgramError::InvalidAccountData.into());
+        }
+
+        Ok(())
+    }
+}
