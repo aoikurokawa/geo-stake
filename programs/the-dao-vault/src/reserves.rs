@@ -7,6 +7,7 @@ use solana_maths::{Rate, TryMul};
 use strum_macros::{EnumCount, EnumIter};
 
 use crate::adapters::solend::SolendReserve;
+// use crate::reserves::Provider;
 
 #[derive(
     Clone,
@@ -31,6 +32,7 @@ pub enum Provider {
 #[macro_export]
 macro_rules! impl_provider_index {
     ($t: ty, $o: ty) => {
+        use crate::reserves::Provider;
         impl core::ops::Index<Provider> for $t {
             type Output = $o;
 
@@ -92,7 +94,46 @@ impl<'a> ReserveAccessor for Reserves {
     fn utilization_rate(&self) -> Result<Rate> {
         match self {
             Reserves::Solend(reserve) => reserve.utilization_rate(),
-            Reserves::Port(reserve) => reserve.utilization_rate()
+            Reserves::Port(reserve) => reserve.utilizetion_rate(),
+        }
+    }
+
+    fn borrow_rate(&self) -> Result<Rate> {
+        match self {
+            Reserves::Solend(reserve) => reserve.borrow_rate(),
+            Reserves::Port(reserve) => reserve.borrow_rate(),
+        }
+    }
+
+    fn reserve_with_deposit(&self, allocation: u64) -> Result<Box<dyn ReserveAccessor>> {
+        match self {
+            Reserves::Solend(reserve) => reserve.reserve_with_deposit(allocation),
+            Reserves::Port(reserve) => reserve.reserve_with_deposit(allocation),
         }
     }
 }
+
+// #[cfg(test)]
+// mod test {
+//     use super::*;
+
+//     #[test]
+//     fn test_calculate_returnf() {
+//         let mut mock_ra_inner = MockReserveAccessor::new();
+
+//         mock_ra_inner
+//             .expect_utilization_rate()
+//             .return_const(Ok(Rate::from_percent(50)));
+
+//         mock_ra_inner
+//             .expect_borrow_rate()
+//             .return_const(Ok(Rate::from_percent(80)));
+
+//         let mut mock_ra = MockReserveAccessor::new();
+//         mock_ra
+//             .expect_reserve_with_deposit()
+//             .return_once(|_| Ok(Box::new(mock_ra_inner)));
+
+//         assert_eq!(mock_ra.calculate_return(10), Ok(Rate::from_percent(40)));
+//     }
+// }
