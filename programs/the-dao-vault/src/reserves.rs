@@ -2,7 +2,7 @@
 use mockall::*;
 
 use anchor_lang::prelude::*;
-use port_anchor_adaptor::PortReserve;
+use port_variable_rate_lending_instructions::state::Reserve as PortReserve;
 use solana_maths::{Rate, TryMul};
 use strum_macros::{EnumCount, EnumIter};
 
@@ -38,7 +38,7 @@ macro_rules! impl_provider_index {
 
             fn index(&self, provider: Provider) -> &Self::Output {
                 match provider {
-                    Provider::Solend => &mut self.solend,
+                    Provider::Solend => &self.solend,
                     Provider::Port => &self.port,
                     Provider::Jet => &self.jet,
                 }
@@ -94,7 +94,7 @@ impl<'a> ReserveAccessor for Reserves {
     fn utilization_rate(&self) -> Result<Rate> {
         match self {
             Reserves::Solend(reserve) => reserve.utilization_rate(),
-            Reserves::Port(reserve) => reserve.utilizetion_rate(),
+            Reserves::Port(reserve) => reserve.utilization_rate(),
         }
     }
 
