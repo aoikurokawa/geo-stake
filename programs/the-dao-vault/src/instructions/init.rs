@@ -164,3 +164,62 @@ impl<'info> Initialize<'info> {
         Ok(())
     }
 }
+
+pub fn handler(
+    ctx: Context<Initialize>,
+    bumps: InitBumpSeeds,
+    config: VaultConfigArg,
+) -> Result<()> {
+    let clock = Clock::get()?;
+
+    // Validating referral token address
+    ctx.accounts.validate_referral_token()?;
+
+    let vault = &mut ctx.accounts.vault;
+    vault.version = get_version_arr();
+    vault.owner = ctx.accounts.owner.key();
+    vault.vault_authority = ctx.accounts.vault_authority.key();
+    vault.authority_seed = vault.key();
+    vault.authority_bump = [bumps.authority];
+    vault.solend_reserve = ctx.accounts.solend_reserve.key();
+    vault.port_reserve = ctx.accounts.port_reserve.key();
+    vault.vault_reserve_token = ctx.accounts.vault_reserve_token.key();
+    vault.vault_solend_lp_token = ctx.accounts.vault_port_lp_token.key();
+    vault.vault_port_lp_token = ctx.accounts.vault_port_lp_token.key();
+    vault.lp_token_mint = ctx.accounts.lp_token_mint.key();
+    vault.reserve_token_mint = ctx.accounts.reserve_token_mint.key();
+    vault.fee_receiver = ctx.accounts.fee_receiver.key();
+    vault.referral_fee_receiver = ctx.accounts.referral_fee_receiver.key();
+    vault.value = SlotTrackecValue {
+        value: 0,
+        last_update: LastUpdate::new(clock.slot),
+    };
+    vault.config = VaultConfigArg::new(config)?;
+
+    // Initialize fee receiver account
+    associated_token::create(ctx.accounts.init_fee_receiver_create_context(
+        ctx.accounts.fee_receiver.to_account_info(),
+        ctx.accounts.owner.to_account_info(),
+    ))?;
+
+    // Initialize referral fee receiver account
+    associated_token::create(ctx.accounts.init_fee_receiver_create_context(
+        ctx.accounts.referral_fee_receiver.to_account_info(),
+        ctx.accounts.referral_fee_owner.to_account_info(),
+    ))?;
+    Ok(())
+}
+
+fn get_version_arr() -> [u8; 3] {
+    [
+        env!("CARGO_PKG_VERSION_MAJOR")
+            .parse::<u8>()
+            .expect("failed to parse major version"),
+        env!("CARGO_PKG_VERSION_MAJOR")
+            .parse::<u8>()
+            .expect("failed to parse major version"),
+        env!("CARGO_PKG_VERSION_MAJOR")
+            .parse::<u8>()
+            .expect("failed to parse major version"),
+    ]
+}
