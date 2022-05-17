@@ -194,7 +194,7 @@ pub fn handler(
         value: 0,
         last_update: LastUpdate::new(clock.slot),
     };
-    vault.config = VaultConfigArg::new(config)?;
+    vault.config = VaultConfig::new(config)?;
 
     // Initialize fee receiver account
     associated_token::create(ctx.accounts.init_fee_receiver_create_context(

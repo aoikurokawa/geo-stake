@@ -10,6 +10,7 @@ use jet_proto_proc_macros::assert_size;
 use crate::{
     errors::ErrorCode,
     impl_provider_index,
+    instructions::VaultConfigArg,
     math::{calc_carry_fees, calc_mgmt_fees},
 };
 
@@ -126,6 +127,42 @@ pub struct VaultConfig {
     pub rebalance_mode: RebalanceMode,
     pub strategy_type: StrategyType,
     _padding: [u32; 3],
+}
+
+impl VaultConfig {
+    pub fn new(config: VaultConfigArg) -> Result<Self> {
+        // Fee cannot be over 100%
+        if config.fee_carry_bps > 10000 {
+            return Err(ErrorCode::InvalidFeeConfig.into());
+        }
+
+        // Fee cannot be over 100%
+        if config.fee_mgmt_bps > 10000 {
+            return Err(ErrorCode::InvalidFeeConfig.into());
+        }
+
+        // Referral percentage cannot be over 50%
+        if config.referral_fee_pct > 50 {
+            return Err(ErrorCode::InvalidReferralFeeConfig.into());
+        }
+
+        // compute the lower limits of the cap using number of yield source
+        // TODO get this from MAX const in Chris's changes
+        if !(34..100).contains(&config.allocation_cap_pct) {
+            return Err(ErrorCode::InvalidAloocationCap.into());
+        }
+
+        Ok(Self {
+            deposit_cap: config.deposit_cap,
+            fee_carry_bps: config.fee_carry_bps,
+            fee_mgmt_bps: config.fee_mgmt_bps,
+            referral_fee_pct: config.referral_fee_pct,
+            allocation_cap_pct: config.allocation_cap_pct,
+            rebalance_mode: config.rebalance_mode,
+            strategy_type: config.strategy_type,
+            _padding: [0; 3],
+        })
+    }
 }
 
 #[repr(u8)]
