@@ -1,7 +1,7 @@
-pub mod init;
+pub mod init_vault;
 pub mod reconcile;
 pub mod refresh;
 
-pub use init::*;
+pub use init_vault::*;
 pub use reconcile::*;
 pub use refresh::*;
