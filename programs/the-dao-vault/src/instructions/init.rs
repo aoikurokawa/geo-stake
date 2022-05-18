@@ -3,19 +3,16 @@ use anchor_spl::{
     associated_token::{self, AssociatedToken, Create},
     token::{Mint, Token, TokenAccount},
 };
-use port_anchor_adaptor::PortReserve;
 
 use std::convert::Into;
 
-use crate::{adapters::SolendReserve, state::*};
+use crate::state::*;
 
 #[derive(AnchorDeserialize, AnchorSerialize, Debug, Clone)]
 pub struct InitBumpSeeds {
     authority: u8,
     reserve: u8,
     lp_mint: u8,
-    solend_lp: u8,
-    port_lp: u8,
 }
 
 #[derive(AnchorDeserialize, AnchorSerialize, Debug, Clone)]
@@ -66,40 +63,8 @@ pub struct Initialize<'info> {
     )]
     pub vault_reserve_token: Box<Account<'info, TokenAccount>>,
 
-    /// Token account for the vault's solend lp tokens
-    #[account(
-        init,
-        payer = payer,
-        seeds = [vault.key().as_ref(), solend_lp_token_mint.key().as_ref()],
-        bump,
-        token::authority = vault_authority,
-        token::mint = solend_lp_token_mint,
-    )]
-    pub vault_solend_lp_token: Box<Account<'info, TokenAccount>>,
-
-    /// Token account for the vault's port lp tokens
-    #[account(
-        init,
-        payer = payer,
-        seeds = [vault.key().as_ref(), port_lp_token_mint.key().as_ref()],
-        bump,
-        token::authority = vault_authority,
-        token::mint = port_lp_token_mint,
-    )]
-    pub vault_port_lp_token: Box<Account<'info, TokenAccount>>,
-
-    /// Mint of the token that the vault accepts and stores
+    // Mint of the token that the vault accepts and stores
     pub reserve_token_mint: Box<Account<'info, Mint>>,
-
-    /// Mint of the solend lp token
-    pub solend_lp_token_mint: AccountInfo<'info>,
-
-    /// Mint of the port lp token
-    pub port_lp_token_mint: AccountInfo<'info>,
-
-    pub solend_reserve: Box<Account<'info, SolendReserve>>,
-
-    pub port_reserve: Box<Account<'info, PortReserve>>,
 
     /// Token account that receives the primary ratio of fees from the vault
     /// denominated in vault lp tokens
@@ -181,11 +146,7 @@ pub fn handler(
     vault.vault_authority = ctx.accounts.vault_authority.key();
     vault.authority_seed = vault.key();
     vault.authority_bump = [bumps.authority];
-    vault.solend_reserve = ctx.accounts.solend_reserve.key();
-    vault.port_reserve = ctx.accounts.port_reserve.key();
     vault.vault_reserve_token = ctx.accounts.vault_reserve_token.key();
-    vault.vault_solend_lp_token = ctx.accounts.vault_port_lp_token.key();
-    vault.vault_port_lp_token = ctx.accounts.vault_port_lp_token.key();
     vault.lp_token_mint = ctx.accounts.lp_token_mint.key();
     vault.reserve_token_mint = ctx.accounts.reserve_token_mint.key();
     vault.fee_receiver = ctx.accounts.fee_receiver.key();
