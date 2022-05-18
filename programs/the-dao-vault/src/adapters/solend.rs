@@ -10,7 +10,9 @@ use spl_token_lending::state::Reserve;
 
 use crate::{
     impl_has_vault,
+    init_yield_source::YieldSourceInitializer,
     reconcile::LendingMarket,
+    refresh::Refresher,
     reserves::{Provider, ReserveAccessor},
     state::Vault,
 };
@@ -204,6 +206,23 @@ pub fn redeem_reserve_collateral<'info>(
         &ix,
         &ToAccountInfos::to_account_infos(&ctx),
         ctx.signer_seeds,
+    )?;
+
+    Ok(())
+}
+
+pub fn refresh_reserve<'info>(ctx: CpiContext<'_, '_, '_, 'info, RefreshReserve<'info>>,) -> Result<()> {
+    let ix = spl_token_lending::instruction::refresh_reserve(
+        *ctx.accounts.lending_program.key, 
+        *ctx.accounts.reserve.key, 
+        *ctx.accounts.pyth_reserve_liquidity_oracle.key,
+        *ctx.accounts.switchboard_reserve_liquidity_oracle.key,
+    );
+
+    solana_program::program::invoke_signed(
+        &ix, 
+        &ToAccountInfos::to_account_infos(&ctx), 
+        ctx.signer_seeds
     )?;
 
     Ok(())
