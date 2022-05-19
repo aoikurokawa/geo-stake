@@ -95,6 +95,15 @@ pub fn handler(ctx: Context<Deposit>, reserve_token_amount: u64) -> Result<()> {
         .contains(VaultFlags::HALT_DEPOSITS_WITHDRAWS))
     .ok_or(ErrorCode::HaltedVault)?;
 
+    let vault = &ctx.accounts.vault;
+
+    let lp_tokens_to_mint = crate::math::calc_reserve_to_lp(
+        reserve_token_amount,
+        ctx.accounts.lp_token_mint.supply,
+        vault.value.value,
+    )
+    .ok_or(ErrorCode::MathError)?;
+
     let total_value = ctx
         .accounts
         .vault
@@ -111,6 +120,28 @@ pub fn handler(ctx: Context<Deposit>, reserve_token_amount: u64) -> Result<()> {
     token::transfer(ctx.accounts.transfer_context(), reserve_token_amount)?;
 
     #[cfg(feature = "debug")]
-    msg!("Minting {} LP Tokens", lp_token_mint);
+    msg!("Minting {} LP Tokens", lp_tokens_to_mint);
+
+    token::mint_to(
+        ctx.accounts
+            .mint_to_context()
+            .with_signer(&[&vault.authority_seeds()]),
+        lp_tokens_to_mint,
+    )?;
+
+    // This is so that the SDK can read an up-to-date total value without calling refresh
+    ctx.accounts.vault.value.value = ctx
+        .accounts
+        .vault
+        .value
+        .value
+        .checked_add(reserve_token_amount)
+        .ok_or(ErrorCode::MathError)?;
+
+    emit!(DepositEvent {
+        vault: ctx.accounts.vault.key(),
+        user: ctx.accounts.user_authority.key(),
+        amount: reserve_token_amount,
+    });
     Ok(())
 }
