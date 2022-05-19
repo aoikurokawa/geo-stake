@@ -432,4 +432,25 @@ impl<'info> RefreshSolend<'info> {
     }
 }
 
+impl<'info> Refresher<'info> for RefreshSolend<'info> {
+    fn update_actual_allocation(
+        &mut self,
+        _remaining_accounts: &[AccountInfo<'info>],
+    ) -> Result<()> {
+        #[cfg(feature = "debug")]
+        msg!("Refreshing solend");
 
+        refresh_reserve(self.solend_refresh_reserve_context())?;
+
+        let solend_exchange_rate = self.solend_reserve.collateral_exchange_rate()?;
+        let solend_value =
+            solend_exchange_rate.collateral_to_liquidity(self.vault_solend_lp_token.amount)?;
+
+        #[cfg(feature = "debug")]
+        msg!("Value: {}", solend_value);
+
+        self.vault.actual_allocations[Provider::Solend].update(solend_value, self.clock.slot);
+
+        Ok(())
+    }
+}
