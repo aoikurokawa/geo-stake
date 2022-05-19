@@ -229,42 +229,6 @@ pub fn refresh_reserve<'info>(
     Ok(())
 }
 
-#[derive(Clone)]
-pub struct SolendReserve(Reserve);
-
-impl anchor_lang::AccountDeserialize for SolendReserve {
-    fn try_deserialize(buf: &mut &[u8]) -> Result<Self> {
-        SolendReserve::try_deserialize_unchecked(buf)
-    }
-
-    fn try_deserialize_unchecked(buf: &mut &[u8]) -> Result<Self> {
-        match <Reserve as solana_program::program_pack::Pack>::unpack(buf).map(SolendReserve) {
-            Ok(val) => Ok(val),
-            Err(err) => Err(err.into()),
-        }
-    }
-}
-
-impl anchor_lang::AccountSerialize for SolendReserve {
-    fn try_serialize<W: Write>(&self, _writer: &mut W) -> Result<()> {
-        Ok(())
-    }
-}
-
-impl anchor_lang::Owner for SolendReserve {
-    fn owner() -> Pubkey {
-        spl_token_lending::id()
-    }
-}
-
-impl Deref for SolendReserve {
-    type Target = Reserve;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
 #[derive(Accounts)]
 pub struct DepositReserveLiquidity<'info> {
     // Lending program
@@ -356,3 +320,116 @@ pub struct RefreshReserve<'info> {
     // Clock
     pub clock: AccountInfo<'info>,
 }
+
+#[derive(Clone)]
+pub struct SolendReserve(Reserve);
+
+impl anchor_lang::AccountDeserialize for SolendReserve {
+    fn try_deserialize(buf: &mut &[u8]) -> Result<Self> {
+        SolendReserve::try_deserialize_unchecked(buf)
+    }
+
+    fn try_deserialize_unchecked(buf: &mut &[u8]) -> Result<Self> {
+        match <Reserve as solana_program::program_pack::Pack>::unpack(buf).map(SolendReserve) {
+            Ok(val) => Ok(val),
+            Err(err) => Err(err.into()),
+        }
+    }
+}
+
+impl anchor_lang::AccountSerialize for SolendReserve {
+    fn try_serialize<W: Write>(&self, _writer: &mut W) -> Result<()> {
+        Ok(())
+    }
+}
+
+impl anchor_lang::Owner for SolendReserve {
+    fn owner() -> Pubkey {
+        spl_token_lending::id()
+    }
+}
+
+impl Deref for SolendReserve {
+    type Target = Reserve;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+#[derive(Accounts)]
+#[instruction(bump: u8)]
+pub struct InitializeSolend<'info> {
+    #[account(mut, has_one = owner, has_one = vault_authority)]
+    pub vault: Box<Account<'info, Vault>>,
+
+    pub vault_authority: AccountInfo<'info>,
+
+    /// Token account for the vault's solend lp tokens
+    #[account(init, payer = payer, seeds = [vault.key().as_ref(), solend_lp_token_mint.key().as_ref()], bump, token::authority = vault_authority, token::mint = solend_lp_token_mint)]
+    pub vault_solend_lp_token: Box<Account<'info, TokenAccount>>,
+
+    pub solend_lp_token_mint: AccountInfo<'info>,
+    pub solend_reserve: Box<Account<'info, SolendReserve>>,
+
+    pub owner: Signer<'info>,
+
+    #[account(mut)]
+    pub payer: Signer<'info>,
+
+    pub token_program: Program<'info, Token>,
+
+    pub system_program: Program<'info, System>,
+
+    pub rent: Sysvar<'info, Rent>,
+}
+
+impl<'info> YieldSourceInitializer<'info> for InitializeSolend<'info> {
+    fn initialize_yield_source(&mut self) -> Result<()> {
+        self.vault.solend_reserve = self.solend_reserve.key();
+        self.vault.vault_solend_lp_token = self.vault_solend_lp_token.key();
+        Ok(())
+    }
+}
+
+#[derive(Accounts)]
+pub struct RefreshSolend<'info> {
+    /// vault state account
+    /// checks that the accounts passed in are correct
+    #[account(mut, has_one = vault_solend_lp_token, has_one = solend_reserve)]
+    pub vault: Box<Account<'info, Vault>>,
+
+    /// Token account for the vault's solend lp tokens
+    pub vault_solend_lp_token: Box<Account<'info, TokenAccount>>,
+
+    #[account(executable, address = spl_token_lending::ID)]
+    pub solend_program: AccountInfo<'info>,
+
+    #[account(mut)]
+    pub solend_reserve: Box<Account<'info, SolendReserve>>,
+
+    pub solend_pyth: AccountInfo<'info>,
+
+    pub solend_switchboard: AccountInfo<'info>,
+
+    pub clock: Sysvar<'info, Clock>,
+}
+
+impl<'info> RefreshSolend<'info> {
+    fn solend_refresh_reserve_context(
+        &self,
+    ) -> CpiContext<'_, '_, '_, 'info, RefreshReserve<'info>> {
+        CpiContext::new(
+            self.solend_program.clone(),
+            RefreshReserve {
+                lending_program: self.solend_program.clone(),
+                reserve: self.solend_reserve.to_account_info(),
+                pyth_reserve_liquidity_oracle: self.solend_pyth.clone(),
+                switchboard_reserve_liquidity_oracle: self.solend_switchboard.clone(),
+                clock: self.clock.to_account_info(),
+            },
+        )
+    }
+}
+
+
