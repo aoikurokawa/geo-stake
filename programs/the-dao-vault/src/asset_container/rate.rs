@@ -70,10 +70,19 @@ mod tests {
                 Some(Rate::from_percent(40)),
             ],
         };
-        assert_eq!(
-            rates.verify_weights(100),
-            Err(ErrorCode::InvalidProposedWeights.into())
-        );
+        assert!(matches!(rates.verify_weights(100), Err(_)));
         // Err(AnchorError(AnchorError { error_name: "InvalidProposedWeights", error_code_number: 6008, error_msg: "Proposed weights do not meet the required constraints", error_origin: None, compared_values: None }))
+    }
+
+    #[test]
+    fn test_verify_weights_unhappy_alloc_cap() {
+        let rates = AssetContainerGeneric::<Rate, 3> {
+            inner: [
+                Some(Rate::from_percent(1)),
+                Some(Rate::from_percent(59)),
+                Some(Rate::from_percent(40)),
+            ],
+        };
+        assert!(matches!(rates.verify_weights(58), Err(_)));
     }
 }
