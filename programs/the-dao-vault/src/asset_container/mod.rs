@@ -1,10 +1,12 @@
 pub mod iter;
 pub mod rate;
 pub mod reserves;
+pub mod u64;
 
 pub use iter::*;
 pub use rate::*;
 pub use reserves::*;
+pub use self::u64::*;
 
 use core::ops::{Index, IndexMut};
 
