@@ -1,4 +1,4 @@
-use anchor_lang::prelude::Result;
+use anchor_lang::prelude::*;
 use boolinator::Boolinator;
 use solana_maths::{Rate, TryAdd};
 
@@ -47,5 +47,33 @@ mod tests {
             ],
         };
         assert!(rates.verify_weights(100).is_ok())
+    }
+
+    #[test]
+    fn test_verify_weights_happy2() {
+        let rates = AssetContainerGeneric::<Rate, 3> {
+            inner: [
+                Some(Rate::from_percent(1)),
+                Some(Rate::from_percent(59)),
+                Some(Rate::from_percent(40)),
+            ],
+        };
+        assert!(rates.verify_weights(59).is_ok())
+    }
+
+    #[test]
+    fn test_verify_weights_unhappy_gt1() {
+        let rates = AssetContainerGeneric::<Rate, 3> {
+            inner: [
+                Some(Rate::from_percent(2)),
+                Some(Rate::from_percent(59)),
+                Some(Rate::from_percent(40)),
+            ],
+        };
+        assert_eq!(
+            rates.verify_weights(100),
+            Err(ErrorCode::InvalidProposedWeights.into())
+        );
+        // Err(AnchorError(AnchorError { error_name: "InvalidProposedWeights", error_code_number: 6008, error_msg: "Proposed weights do not meet the required constraints", error_origin: None, compared_values: None }))
     }
 }
