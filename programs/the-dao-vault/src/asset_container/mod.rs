@@ -1,8 +1,10 @@
 pub mod iter;
 pub mod rate;
+pub mod reserves;
 
 pub use iter::*;
 pub use rate::*;
+pub use reserves::*;
 
 use core::ops::{Index, IndexMut};
 
