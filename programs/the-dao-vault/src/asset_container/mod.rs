@@ -72,10 +72,6 @@ where
     }
 }
 
-// impl<(Provider, T)> FromIterator<(Provider, T)> for AssetContainerGeneric<U, T> {
-
-// }
-
 impl<T, const N: usize> AssetContainerGeneric<T, N> {
     pub fn apply_owned<U: Clone + Default, F: Fn(Provider, T) -> U>(
         mut self,
@@ -96,12 +92,16 @@ impl<T, const N: usize> AssetContainerGeneric<T, N> {
             .collect()
     }
 
+    /// Applies 'f' to each element of the container individually, yielding a new container
     pub fn apply<U: Default, F: Fn(Provider, &T) -> U>(&self, f: F) -> AssetContainerGeneric<U, N> {
+        // Because we have FromIterator<(Provider, T)> if we yield a tuple of
+        // (Provider, U) we can collect() this into a AssetContainerGeneric<U>
         Provider::iter()
-            .map(|provider| (provider, &self[provider]))
+            .map(|provider| (provider, f(provider, &self[provider])))
             .collect()
     }
 
+    /// Identical to 'apply' but returns a Result<AssetContainerGeneric<..>>
     pub fn try_apply<U: Default, E, F: Fn(Provider, &T) -> Result<U, E>>(
         &self,
         f: F,
