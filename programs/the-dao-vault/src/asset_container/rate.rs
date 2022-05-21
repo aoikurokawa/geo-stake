@@ -32,3 +32,20 @@ impl<const N: usize> From<AssetContainerGeneric<u16, N>> for AssetContainerGener
         c.apply(|_, v| Rate::from_bips(u64::from(*v)))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_verify_weights_happy() {
+        let rates = AssetContainerGeneric::<Rate, 3> {
+            inner: [
+                Some(Rate::from_percent(0)),
+                Some(Rate::from_percent(0)),
+                Some(Rate::from_percent(100)),
+            ],
+        };
+        assert!(rates.verify_weights(100).is_ok())
+    }
+}
