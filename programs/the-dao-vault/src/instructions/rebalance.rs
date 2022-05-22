@@ -15,3 +15,26 @@ use crate::{
     reserves::{Provider, Reserves},
     state::*,
 };
+
+#[event]
+pub struct RebalanceEvent {
+    vault: Pubkey,
+}
+
+/// Used by the SDK to figure out the order in which reconcile TXs should be sent
+#[event]
+#[derive(Default)]
+pub struct RebalanceDataEvent {
+    solend: u64,
+    port: u64,
+}
+impl_provider_index!(RebalanceDataEvent, u64);
+
+impl From<&Allocations> for RebalanceDataEvent {
+    fn from(allocations: &Allocations) -> Self {
+        Provider::iter().fold(Self::default(), |mut acc, provider| {
+            acc[provider] = allocations[provider].value;
+            acc
+        })
+    }
+}
