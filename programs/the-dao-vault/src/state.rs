@@ -8,6 +8,7 @@ use type_layout::TypeLayout;
 use jet_proto_proc_macros::assert_size;
 
 use crate::{
+    asset_container::AssetContainer,
     errors::ErrorCode,
     impl_provider_index,
     instructions::VaultConfigArg,
@@ -196,8 +197,16 @@ pub struct Allocations {
     pub port: SlotTrackecValue,
     pub jet: SlotTrackecValue,
 }
-
 impl_provider_index!(Allocations, SlotTrackecValue);
+
+impl Allocations {
+    pub fn from_container(c: AssetContainer<u64>, slot: u64) -> Self {
+        Provider::iter().fold(Self::default(), |mut acc, provider| {
+            acc[provider].update(c[provider], slot);
+            acc
+        })
+    }
+}
 
 #[repr(C, align(8))]
 #[derive(AnchorDeserialize, AnchorSerialize, Clone, Copy, Debug, Default)]
