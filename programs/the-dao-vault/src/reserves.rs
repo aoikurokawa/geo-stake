@@ -26,7 +26,6 @@ use crate::adapters::solend::SolendReserve;
 pub enum Provider {
     Solend = 0,
     Port,
-    Jet,
 }
 
 #[macro_export]
@@ -40,7 +39,6 @@ macro_rules! impl_provider_index {
                 match provider {
                     Provider::Solend => &self.solend,
                     Provider::Port => &self.port,
-                    Provider::Jet => &self.jet,
                 }
             }
         }
@@ -50,7 +48,6 @@ macro_rules! impl_provider_index {
                 match provider {
                     Provider::Solend => &mut self.solend,
                     Provider::Port => &mut self.port,
-                    Provider::Jet => &mut self.jet,
                 }
             }
         }

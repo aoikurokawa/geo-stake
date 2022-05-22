@@ -12,7 +12,7 @@ use crate::{
     asset_container::AssetContainer,
     errors::ErrorCode,
     impl_provider_index,
-    reserves::{Provider, Reserves},
+    reserves::{Reserves},
     state::*,
 };
 
@@ -37,4 +37,19 @@ impl From<&Allocations> for RebalanceDataEvent {
             acc
         })
     }
+}
+
+#[derive(Accounts)]
+pub struct Rebalance<'info> {
+    /// Vault state account
+    /// Checks that the refresh has been called in the small slot
+    /// Chekcs that the accounts passed in are correct
+    #[account(mut, constraint = !vault.value.last_update.is_stale(clock.slot)? @ErrorCode::VaultIsNotRefreshed, has_one = solend_reserve, has_one = port_reserve)]
+    pub vault: Box<Account<'info, Vault>>,
+
+    pub solend_reserve: Box<Account<'info, SolendReserve>>,
+
+    pub port_reserve: Box<Account<'info, PortReserve>>,
+
+    pub clock: Sysvar<'info, Clock>,
 }
