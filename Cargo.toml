@@ -1,6 +1,9 @@
-[package]
-name = "vault"
-version = "0.1.0"
-edition = "2021"
+[workspace]
+members = [
+	"program",
+	"sdk"
+]
 
-[dependencies]
+[workspace.dependencies]
+solana-program = "1.17"
+
