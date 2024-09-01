@@ -1,9 +1,13 @@
 [workspace]
 members = [
-	"program",
-	"sdk"
+	"vault_program",
+	"vault_sdk"
 ]
 
-[workspace.dependencies]
-solana-program = "1.17"
+resolver = "2"
 
+[workspace.dependencies]
+borsh = { version = "0.10.3" }
+solana-program = "~1.18"
+spl-token-2022 = { version = "3.0.4", features = ["no-entrypoint"] }
+vault-sdk = { path = "vault_sdk", version = "=0.0.1" }
