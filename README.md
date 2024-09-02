@@ -1,17 +1,12 @@
-# The DAO vault
+# The Vault
 
-## Setup, Build, and Test
-Install dependencies: 
-```bash
-$ yarn install
-```
-
+## Build
 Build the program: 
 ```bash
-$ anchor build
+cargo-build-sbf
 ```
 
-Test: 
+## Test
 ```bash
-$ anchor test
+cargo nextest run --all-features
 ```
