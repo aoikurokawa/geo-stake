@@ -1,5 +1,6 @@
 [workspace]
-members = [ "integration_tests",
+members = [
+	"integration_tests",
 	"vault_program",
 	"vault_sdk"
 ]
