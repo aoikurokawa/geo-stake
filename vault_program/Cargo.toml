@@ -5,7 +5,7 @@ edition = "2021"
 
 [lib]
 crate-type = ["cdylib", "lib"]
-name = "vault"
+name = "vault_program"
 
 [features]
 no-entrypoint = []
@@ -17,5 +17,6 @@ default = []
 [dependencies]
 borsh = { workspace = true }
 solana-program = { workspace = true }
+spl-token = { workspace = true }
 spl-token-2022 = { workspace = true }
 vault-sdk = { workspace = true }

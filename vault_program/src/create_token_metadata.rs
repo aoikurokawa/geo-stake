@@ -1,7 +1,3 @@
-// use jito_vault_core::{loader::load_mpl_metadata_program, vault::Vault};
-// use jito_vault_sdk::inline_mpl_token_metadata::{
-//     instruction::create_metadata_accounts_v3, pda::find_metadata_account,
-// };
 use solana_program::{
     account_info::AccountInfo, entrypoint::ProgramResult, msg, program::invoke,
     program_error::ProgramError, program_pack::Pack, pubkey::Pubkey, rent::Rent,
@@ -59,11 +55,6 @@ pub fn process_create_token_metadata(
 
     msg!("Creating metadata account...");
     msg!("Metadata account address: {}", metadata.key);
-    // let (metadata_account_pubkey, _) = find_metadata_account(vrt_mint.key);
-    // if metadata_account_pubkey != *metadata.key {
-    //     msg!("Metadata account PDA does not match");
-    //     return Err(ProgramError::InvalidAccountData);
-    // }
 
     let new_metadata_instruction = create_metadata_accounts_v3(
         *mpl_token_metadata_program.key,
@@ -77,12 +68,6 @@ pub fn process_create_token_metadata(
         uri,
     );
 
-    // let (_vault_pubkey, vault_bump, mut vault_seeds) =
-    //     Vault::find_program_address(program_id, &vault.base);
-    // vault_seeds.push(vec![vault_bump]);
-
-    // drop(vault_data);
-
     invoke(
         &new_metadata_instruction,
         &[
@@ -90,7 +75,6 @@ pub fn process_create_token_metadata(
             mint_account.clone(),
             mint_authority.clone(),
             payer.clone(),
-            mint_authority.clone(),
             system_program.clone(),
         ],
     )?;
