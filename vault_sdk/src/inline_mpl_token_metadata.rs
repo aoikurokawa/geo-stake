@@ -8,18 +8,37 @@ pub mod instruction {
     use solana_program::{
         instruction::{AccountMeta, Instruction},
         pubkey::Pubkey,
+        pubkey
     };
 
     use super::state::DataV2;
 
+    // #[derive(BorshSerialize, BorshDeserialize, PartialEq, Eq, Debug, Clone)]
+    // struct CreateMetadataAccountArgsV3 {
+    //     /// Note that unique metadatas are disabled for now.
+    //     pub data: DataV2,
+    //     /// Whether you want your metadata to be updateable in the future.
+    //     pub is_mutable: bool,
+    //     /// UNUSED If this is a collection parent NFT.
+    //     pub collection_details: Option<u8>,
+    // }
+
     #[derive(BorshSerialize, BorshDeserialize, PartialEq, Eq, Debug, Clone)]
-    struct CreateMetadataAccountArgsV3 {
-        /// Note that unique metadatas are disabled for now.
-        pub data: DataV2,
-        /// Whether you want your metadata to be updateable in the future.
+    pub struct CreateV1InstructionArgs {
+        pub name: String,
+        pub symbol: String,
+        pub uri: String,
+        pub seller_fee_basis_points: u16,
+        pub creators: Option<Vec<u8>>,
+        pub primary_sale_happened: bool,
         pub is_mutable: bool,
-        /// UNUSED If this is a collection parent NFT.
+        pub token_standard: u8,
+        pub collection: Option<u8>,
+        pub uses: Option<u8>,
         pub collection_details: Option<u8>,
+        pub rule_set: Option<Pubkey>,
+        pub decimals: Option<u8>,
+        pub print_supply: Option<u8>,
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -34,20 +53,37 @@ pub mod instruction {
         symbol: String,
         uri: String,
     ) -> Instruction {
-        let mut data = vec![33]; // CreateMetadataAccountV3
+        let mut data = vec![42, 0]; // CreateMetadataAccountV3
         data.append(
-            &mut borsh::to_vec(&CreateMetadataAccountArgsV3 {
-                data: DataV2 {
-                    name,
-                    symbol,
-                    uri,
-                    seller_fee_basis_points: 0,
-                    creators: None,
-                    collection: None,
-                    uses: None,
-                },
+            // &mut borsh::to_vec(&CreateMetadataAccountArgsV3 {
+            //     data: DataV2 {
+            //         name,
+            //         symbol,
+            //         uri,
+            //         seller_fee_basis_points: 0,
+            //         creators: None,
+            //         collection: None,
+            //         uses: None,
+            //     },
+            //     is_mutable: true,
+            //     collection_details: None,
+            // })
+            // .unwrap(),
+            &mut borsh::to_vec(&CreateV1InstructionArgs {
+                name,
+                symbol,
+                uri,
+                seller_fee_basis_points: 0,
+                creators: None,
+                primary_sale_happened: false,
                 is_mutable: true,
+                token_standard: 2,
+                collection: None,
+                uses: None,
                 collection_details: None,
+                rule_set: None,
+                decimals: None,
+                print_supply: None,
             })
             .unwrap(),
         );
@@ -55,11 +91,14 @@ pub mod instruction {
             program_id,
             accounts: vec![
                 AccountMeta::new(metadata_account, false),
+                AccountMeta::new_readonly(mint, false), // fake
                 AccountMeta::new_readonly(mint, false),
                 AccountMeta::new_readonly(mint_authority, true),
                 AccountMeta::new(payer, true),
                 AccountMeta::new_readonly(update_authority, true),
                 AccountMeta::new_readonly(solana_program::system_program::ID, false),
+                AccountMeta::new_readonly(mint, false), // fake
+                AccountMeta::new_readonly(mint, false), // fake
             ],
             data,
         }

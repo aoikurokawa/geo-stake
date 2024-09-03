@@ -14,7 +14,7 @@ mod tests {
             processor!(vault_program::process_instruction),
         );
         program_test.prefer_bpf(true);
-        program_test.add_program("mpl_token_metadata", inline_mpl_token_metadata::id(), None);
+        program_test.add_program("token_metadata", inline_mpl_token_metadata::id(), None);
 
         let mut context = program_test.start_with_context().await;
 
@@ -34,7 +34,7 @@ mod tests {
             &context.payer.pubkey(),
             &metadata_pubkey,
             &context.payer.pubkey(),
-            &spl_token::id(),
+            &spl_token_2022::id(),
             name.to_string(),
             symbol.to_string(),
             uri.to_string(),
@@ -47,8 +47,7 @@ mod tests {
             context.last_blockhash,
         );
 
-        let tx_result = context.banks_client.process_transaction(tx).await;
-        assert!(tx_result.is_ok());
+        context.banks_client.process_transaction(tx).await.unwrap();
 
         let token_metadata_account = context
             .banks_client
