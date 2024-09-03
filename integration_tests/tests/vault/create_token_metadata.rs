@@ -1,42 +1,22 @@
 #[cfg(test)]
 mod tests {
-    use std::path::PathBuf;
-
     use borsh::BorshDeserialize;
-    use litesvm::LiteSVM;
-    use solana_sdk::{
-        native_token::LAMPORTS_PER_SOL, signature::Keypair, signer::Signer,
-        transaction::Transaction,
-    };
+    use solana_program_test::{processor, ProgramTest};
+    use solana_sdk::{signature::Keypair, signer::Signer, transaction::Transaction};
     use vault_sdk::inline_mpl_token_metadata;
 
-    fn read_vault_program() -> Vec<u8> {
-        let mut so_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        so_path.push("../target/deploy/vault.so");
-        println!("SO path: {:?}", so_path.to_str());
-        std::fs::read(so_path).unwrap()
-    }
-
-    fn read_mpl_token_metadata_program() -> Vec<u8> {
-        let mut so_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        so_path.push("tests/fixtures/mpl_token_metadata.so");
-        println!("SO path: {:?}", so_path.to_str());
-        std::fs::read(so_path).unwrap()
-    }
-
-    #[test]
-    fn test_create_token_metadata_ok() {
-        let mut svm = LiteSVM::new();
-        svm.add_program(vault_program::id(), &read_vault_program());
-        svm.add_program(
-            inline_mpl_token_metadata::id(),
-            &read_mpl_token_metadata_program(),
+    #[tokio::test]
+    async fn test_create_token_metadata_ok() {
+        let mut program_test = ProgramTest::default();
+        program_test.add_program(
+            "vault_program",
+            vault_program::id(),
+            processor!(vault_program::process_instruction),
         );
+        program_test.prefer_bpf(true);
+        program_test.add_program("mpl_token_metadata", inline_mpl_token_metadata::id(), None);
 
-        let payer_kp = Keypair::new();
-        let payer_pk = payer_kp.pubkey();
-
-        svm.airdrop(&payer_pk, 10 * LAMPORTS_PER_SOL).unwrap();
+        let mut context = program_test.start_with_context().await;
 
         let mint_account = Keypair::new();
 
@@ -51,27 +31,31 @@ mod tests {
         let ix = vault_sdk::sdk::create_token_metadata(
             &vault_program::id(),
             &mint_account.pubkey(),
-            &payer_pk,
+            &context.payer.pubkey(),
             &metadata_pubkey,
-            &payer_pk,
+            &context.payer.pubkey(),
             &spl_token::id(),
             name.to_string(),
             symbol.to_string(),
             uri.to_string(),
         );
 
-        let blockhash = svm.latest_blockhash();
         let tx = Transaction::new_signed_with_payer(
             &[ix],
-            Some(&payer_pk),
-            &[&mint_account, &payer_kp],
-            blockhash,
+            Some(&context.payer.pubkey()),
+            &[&mint_account, &context.payer],
+            context.last_blockhash,
         );
 
-        let tx_result = svm.send_transaction(tx);
+        let tx_result = context.banks_client.process_transaction(tx).await;
         assert!(tx_result.is_ok());
 
-        let token_metadata_account = svm.get_account(&metadata_pubkey).unwrap();
+        let token_metadata_account = context
+            .banks_client
+            .get_account(metadata_pubkey)
+            .await
+            .unwrap()
+            .unwrap();
         let metadata = crate::helpers::token::Metadata::deserialize(
             &mut token_metadata_account.data.as_slice(),
         )
