@@ -1,12 +1,19 @@
-# The Vault
+# GEO Stake
 
-## Build
+## Overview
+
+## Getting started
+
+### Build
 Build the program: 
 ```bash
 cargo-build-sbf
 ```
 
-## Test
+### Test
 ```bash
 cargo nextest run --all-features
 ```
+
+## Resources
+- https://github.com/jito-foundation/stakenet
