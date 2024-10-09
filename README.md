@@ -1,4 +1,4 @@
-# GEO Stake
+# Slasher module
 
 ## Overview
 

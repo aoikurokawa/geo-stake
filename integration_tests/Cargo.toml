@@ -8,6 +8,8 @@ edition = "2021"
 [dev-dependencies]
 borsh = { workspace = true }
 litesvm = "0.1.0"
+slasher-program = { workspace = true }
+slasher-sdk = { workspace = true }
 solana-program = { workspace = true }
 solana-program-test = { workspace = true }
 solana-sdk = { workspace = true }
@@ -15,5 +17,3 @@ spl-token = { workspace = true }
 spl-token-2022 = { workspace = true }
 test-log = { workspace = true }
 tokio = { workspace = true }
-vault-program = { workspace = true }
-vault-sdk = { workspace = true }

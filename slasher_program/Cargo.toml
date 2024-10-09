@@ -1,11 +1,11 @@
 [package]
-name = "vault-program"
+name = "slasher-program"
 version = "0.0.1"
 edition = "2021"
 
 [lib]
 crate-type = ["cdylib", "lib"]
-name = "vault_program"
+name = "slasher_program"
 
 [features]
 no-entrypoint = []
@@ -19,4 +19,4 @@ borsh = { workspace = true }
 solana-program = { workspace = true }
 spl-token = { workspace = true }
 spl-token-2022 = { workspace = true }
-vault-sdk = { workspace = true }
+slasher-sdk = { workspace = true }

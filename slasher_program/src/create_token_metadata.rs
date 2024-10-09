@@ -3,7 +3,6 @@ use solana_program::{
     program_error::ProgramError, program_pack::Pack, pubkey::Pubkey, rent::Rent,
     system_instruction, sysvar::Sysvar,
 };
-use vault_sdk::inline_mpl_token_metadata::instruction::create_metadata_accounts_v3;
 
 pub fn process_create_token_metadata(
     _program_id: &Pubkey,

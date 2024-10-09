@@ -1,14 +1,16 @@
 [workspace]
 members = [
 	"integration_tests",
-	"vault_program",
-	"vault_sdk"
+	"slasher_program",
+	"slasher_sdk"
 ]
 
 resolver = "2"
 
 [workspace.dependencies]
 borsh = { version = "0.10.3" }
+slasher-program = { path = "slasher_program", version = "=0.0.1" }
+slasher-sdk = { path = "slasher_sdk", version = "=0.0.1" }
 solana-sdk = "~1.18"
 solana-program = "~1.18"
 solana-program-test = "~1.18"
@@ -16,5 +18,3 @@ spl-token = { version = "4.0.0", features = ["no-entrypoint"] }
 spl-token-2022 = { version = "3.0.4", features = ["no-entrypoint"] }
 test-log = "0.2.16"
 tokio = { version = "1.36.0", features = ["full"] }
-vault-program = { path = "vault_program", version = "=0.0.1" }
-vault-sdk = { path = "vault_sdk", version = "=0.0.1" }

@@ -1,12 +1,13 @@
 mod create_token_metadata;
+mod instant_slash;
 
 use borsh::BorshDeserialize;
 use create_token_metadata::process_create_token_metadata;
+use slasher_sdk::instruction::VaultInstruction;
 use solana_program::{
     account_info::AccountInfo, declare_id, entrypoint::ProgramResult, msg,
     program_error::ProgramError, pubkey::Pubkey,
 };
-use vault_sdk::instruction::VaultInstruction;
 
 declare_id!("AE7fSUJSGxMzjNxSPpNTemrz9cr26RFue4GwoJ1cuR6f");
 
