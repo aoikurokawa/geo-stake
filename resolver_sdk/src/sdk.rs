@@ -25,7 +25,6 @@ pub fn create_token_metadata(
         AccountMeta::new(*metadata, false),
         AccountMeta::new(*payer, true),
         AccountMeta::new_readonly(*token_program_id, false),
-        AccountMeta::new_readonly(crate::inline_mpl_token_metadata::id(), false),
         AccountMeta::new_readonly(system_program::id(), false),
     ];
 

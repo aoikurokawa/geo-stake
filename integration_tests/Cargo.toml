@@ -8,8 +8,8 @@ edition = "2021"
 [dev-dependencies]
 borsh = { workspace = true }
 litesvm = "0.1.0"
-slasher-program = { workspace = true }
-slasher-sdk = { workspace = true }
+resolver-program = { workspace = true }
+resolver-sdk = { workspace = true }
 solana-program = { workspace = true }
 solana-program-test = { workspace = true }
 solana-sdk = { workspace = true }

@@ -1,6 +1,8 @@
-# Slasher module
+# Resolver Program
 
 ## Overview
+
+Resolvers are program that is able to veto slashing incidents forwarded from networks and can be shared across networks.
 
 ## Getting started
 

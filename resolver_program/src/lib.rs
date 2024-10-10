@@ -1,5 +1,6 @@
 mod create_token_metadata;
 mod instant_slash;
+mod set_resolver;
 
 use borsh::BorshDeserialize;
 use create_token_metadata::process_create_token_metadata;
